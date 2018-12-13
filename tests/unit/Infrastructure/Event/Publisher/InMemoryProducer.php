@@ -1,0 +1,54 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Micro\User\Tests\Unit\Infrastructure\Event\Publisher;
+
+use OldSound\RabbitMqBundle\RabbitMq\ConsumerInterface;
+use OldSound\RabbitMqBundle\RabbitMq\ProducerInterface;
+use PhpAmqpLib\Message\AMQPMessage;
+
+class InMemoryProducer implements ProducerInterface
+{
+    /**
+     * @var array
+     */
+    protected $consumers = [];
+
+    /**
+     * @param string $msgBody
+     * @param string $routingKey
+     * @param array  $additionalProperties
+     */
+    public function publish($msgBody, $routingKey = '', $additionalProperties = []): void
+    {
+        $amqMessage = $this->amqMessageAdapter($msgBody, $additionalProperties);
+        $this->consume($routingKey, $amqMessage);
+    }
+
+    public function addConsumer(string $routing, ConsumerInterface $consumer): self
+    {
+        $this->consumers[$routing][] = $consumer;
+
+        return $this;
+    }
+
+    private function consume(string $routingKey, AMQPMessage $message): void
+    {
+        /** @var ConsumerInterface[] $consumers */
+        $consumers = $this->consumers[$routingKey] ?? [];
+
+        if (empty($consumers)) {
+            return;
+        }
+
+        foreach ($consumers as $consumer) {
+            $consumer->execute($message);
+        }
+    }
+
+    private function amqMessageAdapter(string $body, array $properties): AMQPMessage
+    {
+        return new AMQPMessage($body, $properties);
+    }
+}

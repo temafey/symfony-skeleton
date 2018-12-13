@@ -1,0 +1,8 @@
+api_controllers:
+    resource: '../src/Presentation/Http/Rest/Controller/'
+    type: annotation
+    prefix: /api
+
+web_controllers:
+    resource: '../src/Presentation/Http/Web/Controller/'
+    type: annotation

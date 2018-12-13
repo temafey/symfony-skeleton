@@ -1,0 +1,12 @@
+default:
+  suites:
+    default:
+      contexts:
+        - Vendor\Project\Tests\Acceptance\Context\FeatureContext:
+            kernel: '@kernel'
+
+  extensions:
+    Behat\Symfony2Extension:
+      kernel:
+        bootstrap: tests/acceptance/bootstrap.php
+        class: Vendor\Project\Infrastructure\Symfony\Kernel

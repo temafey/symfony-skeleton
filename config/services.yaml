@@ -1,0 +1,82 @@
+# Put parameters here that don't need to change on each machine where the app is deployed
+# https://symfony.com/doc/current/best_practices/configuration.html#application-related-configuration
+parameters:
+  elastic:
+    hosts:
+      - '%env(ELASTIC_HOST)%'
+
+  env(ELASTIC_HOST): 'elasticsearch:9200'
+  
+services:
+    _defaults:
+        autowire: true
+        autoconfigure: true
+        public: false
+        bind:
+          $elasticConfig: '%elastic%'
+
+          $queryBus: '@tactician.commandbus.query'
+          $commandBus: '@tactician.commandbus.command'
+          #$eventBus: '@broadway.event_handling.event_bus'
+
+          #$eventStore: '@Broadway\EventStore\Dbal\DBALEventStore'
+
+          $eventProducer: '@old_sound_rabbit_mq.events_producer'
+
+    _instanceof:
+
+        Micro\Service\Application\Command\HandlerInterface:
+          public: true
+          tags:
+              - { name: tactician.handler, typehints: true, bus: command }
+
+        Micro\Service\Application\Query\HandlerInterface:
+          public: true
+          tags:
+              - { name: tactician.handler, typehints: true, bus: query }
+
+        Broadway\EventHandling\EventListener:
+          public: true
+          tags:
+              - { name: broadway.domain.event_listener }
+
+    Micro\Service\:
+        resource: '../src/*'
+        exclude: '../src/**/{Migrations,EventSubscriber}'
+
+    ### Event Store
+
+    Broadway\EventStore\Dbal\DBALEventStore:
+        public: true
+        arguments:
+          - '@doctrine.dbal.default_connection'
+          - '@broadway.serializer.payload'
+          - '@broadway.serializer.metadata'
+          - 'events'
+          - 'false'
+          - '@broadway.uuid.converter'
+
+    Micro\Service\Infrastructure\Event\Query\ElasticRepository: ~
+
+    ### Presentation
+
+    Micro\Service\Presentation\Cli\Command\:
+        resource: '../src/Presentation/Cli/Command'
+
+    Micro\Service\Presentation\Http\Rest\Controller\:
+        resource: '../src/Presentation/Http/Rest/Controller/*'
+        tags: [ 'controller.service_arguments' ]
+
+    Micro\Service\Presentation\Http\Web\Controller\:
+        resource: '../src/Presentation/Http/Web/Controller/*'
+        tags: [ 'controller.service_arguments' ]
+
+    ### Presentation Listeners
+
+    Micro\Service\Presentation\Http\Rest\EventSubscriber\ExceptionSubscriber:
+        tags:
+            - { name: 'kernel.event_listener', event: 'kernel.exception' }
+
+    Micro\Service\Presentation\Http\Rest\EventSubscriber\JsonBodyParserSubscriber:
+        tags:
+            - { name: 'kernel.event_listener', event: 'kernel.request', method: 'onKernelRequest', priority: 100 }

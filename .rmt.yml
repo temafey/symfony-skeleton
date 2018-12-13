@@ -1,0 +1,30 @@
+_default:
+  vcs: git
+  prerequisites:
+    working-copy-check: ~
+    display-last-changes: ~
+    composer-json-check:
+      composer: composer
+    composer-stability-check: ~
+    tests-check:
+      command: ./bin/phpunit
+  version-generator: simple
+  version-persister:
+    name: vcs-tag
+    tag-prefix: "{branch-name}_"
+  #post-release-actions: [vcs-publish]
+
+# This entry allow to override some parameters for the master branch
+master:
+  prerequisites: [working-copy-check, display-last-changes]
+  pre-release-actions:
+    changelog-update:
+      format: markdown
+      file: CHANGELOG.md
+      dump-commits: true
+    update-version-class:
+      class: Doctrine\ODM\PHPCR\Version
+      pattern: const VERSION = '%version%';
+    vcs-commit: ~
+  version-generator: semantic
+  version-persister: vcs-tag
