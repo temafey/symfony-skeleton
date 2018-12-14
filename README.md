@@ -9,7 +9,7 @@ in Skeleton for developing majority of the projects.
 Creating new project
 ==========
 
-Creating new project with 4xxi Symfony Skeleton is as easy as running
+Creating new project with Symfony Skeleton is as easy as running
 ```bash
 composer create-project temafey/symfony-skeleton <project_name>
 ```

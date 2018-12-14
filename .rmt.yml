@@ -22,4 +22,6 @@ master:
       dump-commits: true
     vcs-commit: ~
   version-generator: semantic
-  version-persister: vcs-tag
+  version-persister:
+    name: vcs-tag
+    tag-prefix: "v"
