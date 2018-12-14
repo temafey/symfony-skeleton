@@ -6,8 +6,6 @@ _default:
     composer-json-check:
       composer: composer
     composer-stability-check: ~
-    tests-check:
-      command: ./bin/phpunit
   version-generator: simple
   version-persister:
     name: vcs-tag
@@ -22,9 +20,6 @@ master:
       format: markdown
       file: CHANGELOG.md
       dump-commits: true
-    update-version-class:
-      class: Doctrine\ODM\PHPCR\Version
-      pattern: const VERSION = '%version%';
     vcs-commit: ~
   version-generator: semantic
   version-persister: vcs-tag
